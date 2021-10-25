@@ -1,92 +1,110 @@
 package bsu.rfe.java.group10.lab1.Galay.varC2;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Comparator;
-
-
+import java.util.*;
+import java.lang.reflect.*;
 
 public class Main {
+    public static Scanner scanner = new Scanner(System.in);
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) throws Exception {
+        Scanner scanner = new Scanner(System.in);
 
-        Food[] breakfast = new Food[20];
-        boolean sort_needed = false;
-        boolean calories_needed = false;
-        System.out.println("длина массива аргументов: " + args.length);
-        int count_breakfast = 0;
-        for (String arg : args) {
-            if (arg.equals("-calories")) {
-                calories_needed = true;
-            } else if (arg.equals("-sort")) {
-                sort_needed = true;
-            } else {
-                String[] parts = arg.split("/");
-                String[] param = new String[parts.length - 1];
-                System.arraycopy(parts, 1, param, 0, parts.length - 1);
+        System.out.print("Do u want to sort? (y/n) ");
+        String sorted = scanner.nextLine();
 
-               try {
-                    Class<?> myClass = Class.forName("bsu.rfe.java.group10.lab1.Galay.var2C" + parts[0]);
-                   breakfast[count_breakfast] = (Food) myClass.getConstructor(myClass.getConstructors()[0].getParameterTypes()).newInstance((Object) param);
-                    count_breakfast++;
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException ex) {
-                    System.out.print(ex);
-                } catch (ClassNotFoundException ex) {
-                    System.out.println("Введите существующий класс!");
-                } catch (NoSuchMethodException ex) {
-                    System.out.println("Введите правильные параметры класса!");
-                }
+        System.out.print("Do u want to calculate calories? (y/n) ");
+        String calories = scanner.nextLine();
+
+        ArrayList<Food> breakfast = new ArrayList<Food>();
+        FillArrayList(breakfast);
+        PrintArrayList(breakfast);
+
+        if (sorted.equals("y")) {
+            SortArrayList(breakfast);
+            System.out.println("Sorted breakfast");
+            PrintArrayList(breakfast);
+        }
+
+        Consume(breakfast);
+
+        if (calories.equals("y"))
+            System.out.println("U ate " + CalculateCalories(breakfast) + " calories");
+    }
+
+    private static void Consume(ArrayList<Food> breakfast) {
+        if (breakfast == null)
+            return;
+        for (Food el:breakfast)
+            el.consume();
+    }
+
+    public static void FillArrayList(ArrayList<Food> breakfast) throws Exception{
+        String answer;
+        do {
+            System.out.print("Select food from the list\n" +
+                    "_________________________\n" +
+                    "1)Apple\n" +
+                    "2)Cheese\n" +
+                    "3)Cocktail:\n" +
+                    "Drink(Milk, Sprite, Water) with Fruit(Banana, Kiwi, Watermelon) ");
+            String food = scanner.nextLine();
+
+            if (food.equals("Apple"))
+                breakfast.add(new Apple());
+            else if (food.equals("Cheese"))
+                breakfast.add(new Cheese());
+            else if (food.equals("Cocktail")){
+                System.out.print("Enter drink: ");
+                String drink = scanner.nextLine();
+                if (!(drink.equals("Milk") || drink.equals("Sprite")||drink.equals("Water")))
+                    throw new ClassNotFoundException("There is no such drink");
+                System.out.print("Enter fruit: ");
+                String fruit = scanner.nextLine();
+                if (!(fruit.equals("Banana")||fruit.equals("Kiwi") || fruit.equals("Watermelon")))
+                    throw new ClassNotFoundException("There is no such fruit");
+                breakfast.add(new Cocktail(drink,fruit));
             }
-        }
-        for (Food food : breakfast) {
-            if (food == null) break;
-            food.consume();
-        }
-        int count;
-        Food[] breakfast_diff = new Food[count_breakfast];
-        for (int i = 0; i < count_breakfast; i++) {
-            count = 1;
-            boolean to_continue = false;
-            for(int j = 0; j < count_breakfast; j++)
-            {
-                if(breakfast_diff[j] == null) continue;
-                if (breakfast_diff[j].equals(breakfast[i])) {
-                    to_continue = true;
-                    break;
-                }
+            else throw new ClassNotFoundException("There is no such variant!");
+
+            System.out.print("Do u want more? (y/n) ");
+            answer = scanner.nextLine();
+        } while(answer.equals("y"));
+    }
+
+    public static void PrintArrayList(final ArrayList<Food> breakfast) throws ClassNotFoundException, NoSuchFieldException {
+        if (breakfast == null)
+            System.out.println("U are fat, u are not allowed to eat!");
+        System.out.println("U want to ate today: ");
+        for (Food item : breakfast) {
+            Class MyClass = item.getClass();
+            System.out.println(MyClass.getSimpleName());
+
+            Field[] fields = MyClass.getDeclaredFields();
+            for (Field it : fields){
+                System.out.println(it);
             }
-            if(to_continue) continue;
-            for (int j = i + 1; j < count_breakfast; j++) {
-                if ((breakfast[j].equals(breakfast[i]))) {
-                    count++;
-                }
-            }
-            breakfast_diff[i] = breakfast[i];
-            breakfast[i].consume();
-            System.out.println(count + " раз(а)");
+            //System.out.print(item.toString() + ", ");
         }
-        if(calories_needed){
-            int calories = 0;
-            for (int i = 0; i < count_breakfast; i++) calories += breakfast[i].calculateCalories();
-            System.out.println("калорийность: " + calories);
-        }
-        if(sort_needed){
-            Arrays.sort(breakfast, new Comparator(){
-                public int compare(Object f1, Object f2){
+        System.out.println();
+    }
+
+    public static void SortArrayList(ArrayList<Food> breakfast){
+        Collections.sort(breakfast,
+                (f1, f2) -> {
                     if(f1==null) return 1;
                     if(f2==null) return -1;
-                    return Integer.compare(((Food) f2).calculateCalories(), ((Food) f1).calculateCalories());
-                }
-            });
-        }
-        System.out.println("отсортированные продукты");
-        for (Food food : breakfast) {
-            if (food == null) continue;
-            System.out.println(food + " " + food.calculateCalories());
-            //breakfast[i].consume();
-        }
-        System.out.print("Съедено продуктов: " + count_breakfast);
-        System.out.print("\nвсего хорошего!");
+                    if(((Food)f1).calculateCalories()==((Food)f2).calculateCalories()) return 0;
+                    if(((Food)f1).calculateCalories()>((Food)f2).calculateCalories()) return -1;
+                    return 1;
+                });
+    }
+
+    public static int CalculateCalories(ArrayList<Food> breakfast){
+        if (breakfast == null)
+            return 0;
+        int calories = 0;
+        for (Food el : breakfast)
+            calories += el.calculateCalories();
+        return calories;
     }
 }

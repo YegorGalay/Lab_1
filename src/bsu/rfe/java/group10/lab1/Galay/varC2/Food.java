@@ -1,28 +1,37 @@
 package bsu.rfe.java.group10.lab1.Galay.varC2;
 
 public abstract class Food implements Consumable, Nutritious{
-    private String name;
+    private String _name = null;
+    private int _calories = 0;
 
-    public Food(String name){
-        this.name = name;
+    public Food(String name, int calories){
+        _calories = calories;
+        _name = name;
     }
-    public String getName() {
-        return name;
+
+    public int get_calories() {
+        return _calories;
+    }
+    protected void set_calories(int calories) {
+        _calories = calories;
+    }
+
+    public String get_name() {
+        return _name;
+    }
+    private void set_name(String name) {
+        _name = name;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(!(obj instanceof Food)) return false;
-        if(name==null || ((Food)obj).name==null) return false;
-        return name.equals(((Food)obj).name);
+    public boolean equals(Object arg0) {
+        if (!(arg0 instanceof Food)) return false;
+        if (_name==null || ((Food)arg0)._name==null) return false;
+        return _name.equals(((Food)arg0)._name);
     }
 
     @Override
     public String toString() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        return _name;
     }
 }
